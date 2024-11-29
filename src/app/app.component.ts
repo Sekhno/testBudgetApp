@@ -29,7 +29,7 @@ export class AppComponent {
   private _cdr = inject(ChangeDetectorRef);
 
   public categories: CategoryType[] = ["Groceries", "Salary", "Entertainment"];
-  public displayedColumns = ["name", "amount", "type", "category", "date"];
+  public displayedColumns = ["name", "type", "category", "date", "amount",];
   public dataSource: DefaultTransactionType[] = retrieveTransActions();
   public transGroup = this._fb.group
   ({
@@ -39,13 +39,11 @@ export class AppComponent {
     type: this._fb.control('expenses', { nonNullable: true, validators: [Validators.required] }),
     date: this._fb.control(new Date(), { nonNullable: true, validators: [Validators.required] }),
   });
+  public total = 0;
 
-  constructor() {
-    this.transGroup.valueChanges
-      .subscribe(change =>
-      {
-        console.log(change);
-      })
+  constructor()
+  {
+    this._calcTotal();
   }
 
   public addNewCategory(name: string)
@@ -58,9 +56,37 @@ export class AppComponent {
     this.categories.splice(this.categories.indexOf(name), 1);
   }
 
-  public addTransAction() {
+  public addTransAction()
+  {
     this.dataSource = [...this.dataSource, this.transGroup.getRawValue() as DefaultTransactionType];
+    this._calcTotal();
+    this._resetForm();
 
-    saveTransActions(this.dataSource)
+    saveTransActions(this.dataSource);
+  }
+
+  private _calcTotal()
+  {
+    const expenses = this.dataSource
+      .filter(({type}) => type === 'expenses')
+      .map(({amount}) => amount)
+      .reduce((acc, cur) => acc + cur, 0);
+    const incomes = this.dataSource
+      .filter(({type}) => type === 'incomes')
+      .map(({amount}) => amount)
+      .reduce((acc, cur) => acc + cur, 0);
+
+    this.total = incomes - expenses;
+  }
+
+  private _resetForm()
+  {
+    this.transGroup.reset({
+      name: '',
+      amount: 0,
+      category: '',
+      type: 'expenses',
+      date: new Date(),
+    })
   }
 }
