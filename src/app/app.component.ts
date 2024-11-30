@@ -1,16 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, signal, ViewChild} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {CategoryType, DefaultTransactionType} from './models/TransactionsTypes';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule, MatIconButton} from '@angular/material/button';
-import {MatTable, MatTableModule} from '@angular/material/table';
+import {MatTable, MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import {DatePipe} from '@angular/common';
-import {retrieveTransActions, saveTransActions} from './storage/crud';
+import {DatePipe, DecimalPipe} from '@angular/common';
+import {retrieveCategories, retrieveTransActions, saveCategories, saveTransActions} from './storage/crud';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {MatRadioModule} from '@angular/material/radio';
 
 @Component({
   selector: 'app-root',
@@ -19,18 +21,18 @@ import {retrieveTransActions, saveTransActions} from './storage/crud';
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterOutlet, DatePipe,
+    RouterOutlet, DatePipe, DecimalPipe, FormsModule,
     MatInputModule, MatSelectModule, ReactiveFormsModule, MatIconModule, MatIconButton, MatButtonModule,
-    MatTableModule, MatDatepickerModule
+    MatTableModule, MatDatepickerModule, MatExpansionModule, MatRadioModule
   ]
 })
 export class AppComponent {
   private _fb = inject(FormBuilder);
   private _cdr = inject(ChangeDetectorRef);
 
-  public categories: CategoryType[] = ["Groceries", "Salary", "Entertainment"];
+  public categories: CategoryType[] = retrieveCategories();
   public displayedColumns = ["name", "type", "category", "date", "amount",];
-  public dataSource: DefaultTransactionType[] = retrieveTransActions();
+  public dataSource= new MatTableDataSource(retrieveTransActions()) ;
   public transGroup = this._fb.group
   ({
     name: this._fb.control('', { nonNullable: true, validators: [Validators.required] }),
@@ -40,6 +42,16 @@ export class AppComponent {
     date: this._fb.control(new Date(), { nonNullable: true, validators: [Validators.required] }),
   });
   public total = 0;
+  public filters = {
+    type: '',
+    category: '',
+    minAmount: null,
+    maxAmount: null,
+    startDate: null,
+    endDate: null,
+  };
+
+  readonly panelOpenState = signal(false);
 
   constructor()
   {
@@ -49,6 +61,7 @@ export class AppComponent {
   public addNewCategory(name: string)
   {
     this.categories.push(name);
+    saveCategories(this.categories);
   }
 
   public removeCategory(name: string)
@@ -56,22 +69,42 @@ export class AppComponent {
     this.categories.splice(this.categories.indexOf(name), 1);
   }
 
+  public applyFilter()
+  {
+    const { type, category, minAmount, maxAmount, startDate, endDate } = this.filters;
+
+    this.dataSource.filterPredicate = (data, filter) => {
+      const matchType = !type || data.type.toLowerCase() === type.toLowerCase();
+      const matchCategory = !category || data.category.toLowerCase().includes(category.toLowerCase());
+      const matchAmount = (!minAmount || data.amount >= minAmount) && (!maxAmount || data.amount <= maxAmount);
+      const matchDate =
+        (!startDate || new Date(data.date) >= new Date(startDate)) &&
+        (!endDate || new Date(data.date) <= new Date(endDate));
+
+      return matchType && matchCategory && matchAmount && matchDate;
+    };
+
+    // Тригер фільтрації (передаємо довільний рядок, щоб оновити таблицю)
+    this.dataSource.filter = JSON.stringify(this.filters);
+    this._calcTotal();
+  }
+
   public addTransAction()
   {
-    this.dataSource = [...this.dataSource, this.transGroup.getRawValue() as DefaultTransactionType];
+    this.dataSource.data = [...this.dataSource.data, this.transGroup.getRawValue() as DefaultTransactionType];
     this._calcTotal();
     this._resetForm();
 
-    saveTransActions(this.dataSource);
+    saveTransActions(this.dataSource.data);
   }
 
   private _calcTotal()
   {
-    const expenses = this.dataSource
+    const expenses = this.dataSource.filteredData
       .filter(({type}) => type === 'expenses')
       .map(({amount}) => amount)
       .reduce((acc, cur) => acc + cur, 0);
-    const incomes = this.dataSource
+    const incomes = this.dataSource.filteredData
       .filter(({type}) => type === 'incomes')
       .map(({amount}) => amount)
       .reduce((acc, cur) => acc + cur, 0);

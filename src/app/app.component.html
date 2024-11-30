@@ -51,6 +51,60 @@
               (click)="addTransAction()">Add Transaction</button>
     </form>
 
+    <mat-accordion>
+      <mat-expansion-panel (opened)="panelOpenState.set(true)" (closed)="panelOpenState.set(false)">
+        <mat-expansion-panel-header>
+          <mat-panel-title> <mat-icon>filter_list</mat-icon> </mat-panel-title>
+          <mat-panel-description>
+            Filters
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="filters-content">
+          <!-- Фільтр за типом -->
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="filters.type" (selectionChange)="applyFilter()">
+              <mat-option value="">All</mat-option>
+              <mat-option value="incomes">Incomes</mat-option>
+              <mat-option value="expenses">Expenses</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Фільтр за категорією -->
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <input matInput [(ngModel)]="filters.category" (input)="applyFilter()" placeholder="Category">
+          </mat-form-field>
+
+          <!-- Фільтр за сумою -->
+          <mat-form-field appearance="outline">
+            <mat-label>Min Amount</mat-label>
+            <input matInput type="number" [(ngModel)]="filters.minAmount" (input)="applyFilter()" placeholder="Min">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Max Amount</mat-label>
+            <input matInput type="number" [(ngModel)]="filters.maxAmount" (input)="applyFilter()" placeholder="Max">
+          </mat-form-field>
+
+          <!-- Фільтр за датою -->
+          <mat-form-field appearance="outline">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" [(ngModel)]="filters.startDate" (dateChange)="applyFilter()">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.endDate" (dateChange)="applyFilter()">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
     <table mat-table [dataSource]="dataSource">
       <!-- Name Column -->
       <ng-container matColumnDef="name">
@@ -61,7 +115,7 @@
 
       <!-- Type Column -->
       <ng-container matColumnDef="type">
-        <th mat-header-cell *matHeaderCellDef> Type </th>
+        <th mat-header-cell *matHeaderCellDef> Type  </th>
         <td mat-cell *matCellDef="let element"> {{ element.type }} </td>
         <td mat-footer-cell *matFooterCellDef> </td>
       </ng-container>
@@ -83,8 +137,8 @@
       <!-- Amount Column -->
       <ng-container matColumnDef="amount">
         <th mat-header-cell *matHeaderCellDef> Amount </th>
-        <td mat-cell *matCellDef="let element"> {{ element.amount }} </td>
-        <td mat-footer-cell *matFooterCellDef> {{ total }} </td>
+        <td mat-cell *matCellDef="let element"> {{ element.amount | number : '1.2-2' }} </td>
+        <td mat-footer-cell *matFooterCellDef> {{ total | number : '1.2-2' }} </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
