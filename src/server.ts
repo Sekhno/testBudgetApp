@@ -1,9 +1,13 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine, isMainModule } from '@angular/ssr/node';
 import express from 'express';
-import { dirname, join, resolve } from 'node:path';
+import cookieParser from 'cookie-parser';
+import path, { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { v4 as uuidv4 } from 'uuid';
 import bootstrap from './main.server';
+import { secretKey } from './core/secret';
+
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -11,6 +15,9 @@ const indexHtml = join(serverDistFolder, 'index.server.html');
 
 const app = express();
 const commonEngine = new CommonEngine();
+
+console.log('----------')
+
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -24,11 +31,37 @@ const commonEngine = new CommonEngine();
  * ```
  */
 
+
+app.use(cookieParser(secretKey));
+app.use((
+  req,
+  res,
+  next
+) =>
+{
+  if (!req.cookies || !req.cookies.userId) {
+    const userId = uuidv4();
+
+    res.cookie('userId', userId, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true });
+  }
+
+  next();
+});
+
+app.get('/api/data', (
+  req,
+  res
+) =>
+{
+  const {userId} = req.cookies;
+
+  res.status(201).send([])
+});
+
 /**
  * Serve static files from /browser
  */
-app.get(
-  '**',
+app.get('**',
   express.static(browserDistFolder, {
     maxAge: '1y',
     index: 'index.html'
@@ -38,7 +71,12 @@ app.get(
 /**
  * Handle all other requests by rendering the Angular application.
  */
-app.get('**', (req, res, next) => {
+app.get('**', (
+  req,
+  res,
+  next
+) =>
+{
   const { protocol, originalUrl, baseUrl, headers } = req;
 
   commonEngine

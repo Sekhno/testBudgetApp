@@ -40,7 +40,10 @@
             "prerender": true,
             "ssr": {
               "entry": "src/server.ts"
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "cookie-parser", "mongodb"
+            ]
           },
           "configurations": {
             "production": {

@@ -10,9 +10,12 @@ import {MatButtonModule, MatIconButton} from '@angular/material/button';
 import {MatTable, MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {DatePipe, DecimalPipe} from '@angular/common';
-import {retrieveCategories, retrieveTransActions, saveCategories, saveTransActions} from './storage/crud';
+import {
+  StorageService
+} from './storage/crud';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatRadioModule} from '@angular/material/radio';
+import {forkJoin} from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -29,10 +32,11 @@ import {MatRadioModule} from '@angular/material/radio';
 export class AppComponent {
   private _fb = inject(FormBuilder);
   private _cdr = inject(ChangeDetectorRef);
+  private _storage = inject(StorageService);
 
-  public categories: CategoryType[] = retrieveCategories();
+  public categories: CategoryType[] = [];
   public displayedColumns = ["name", "type", "category", "date", "amount",];
-  public dataSource= new MatTableDataSource(retrieveTransActions()) ;
+  public dataSource= new MatTableDataSource([] as DefaultTransactionType[]) ;
   public transGroup = this._fb.group
   ({
     name: this._fb.control('', { nonNullable: true, validators: [Validators.required] }),
@@ -55,13 +59,21 @@ export class AppComponent {
 
   constructor()
   {
-    this._calcTotal();
+
+    this._initData().subscribe(({categories, data}) =>
+    {
+
+      this.categories = (categories || []) as string[];
+      this.dataSource = new MatTableDataSource((data || []) as DefaultTransactionType[]);
+      this._calcTotal();
+    })
+
   }
 
   public addNewCategory(name: string)
   {
     this.categories.push(name);
-    saveCategories(this.categories);
+    this._storage.saveCategories(this.categories);
   }
 
   public removeCategory(name: string)
@@ -94,8 +106,15 @@ export class AppComponent {
     this.dataSource.data = [...this.dataSource.data, this.transGroup.getRawValue() as DefaultTransactionType];
     this._calcTotal();
     this._resetForm();
+    this._storage.saveTransActions(this.dataSource.data);
+  }
 
-    saveTransActions(this.dataSource.data);
+  private _initData()
+  {
+    return forkJoin({
+      categories: this._storage.retrieveCategories(),
+      data: this._storage.retrieveTransActions()
+    })
   }
 
   private _calcTotal()
