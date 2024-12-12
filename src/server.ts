@@ -42,7 +42,7 @@ app.use((
   if (!req.cookies || !req.cookies.userId) {
     const userId = uuidv4();
 
-    res.cookie('userId', userId, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true });
+    res.cookie('userId', userId, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: false });
   }
 
   next();

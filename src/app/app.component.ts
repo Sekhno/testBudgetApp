@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, signal, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  computed, effect,
+  inject,
+  signal,
+  ViewChild
+} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatInputModule} from '@angular/material/input';
@@ -15,7 +23,7 @@ import {
 } from './storage/crud';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatRadioModule} from '@angular/material/radio';
-import {forkJoin} from 'rxjs';
+import {combineLatest, forkJoin} from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -59,21 +67,17 @@ export class AppComponent {
 
   constructor()
   {
-
-    this._initData().subscribe(({categories, data}) =>
-    {
-
-      this.categories = (categories || []) as string[];
-      this.dataSource = new MatTableDataSource((data || []) as DefaultTransactionType[]);
-      this._calcTotal();
-    })
-
+    effect(async () => {
+      if (this._storage.availableSignal()) {
+        await this._initData();
+      }
+    });
   }
 
-  public addNewCategory(name: string)
+  public async addNewCategory(name: string)
   {
     this.categories.push(name);
-    this._storage.saveCategories(this.categories);
+    await this._storage.saveCategory(name);
   }
 
   public removeCategory(name: string)
@@ -101,20 +105,24 @@ export class AppComponent {
     this._calcTotal();
   }
 
-  public addTransAction()
+  public async addTransAction()
   {
-    this.dataSource.data = [...this.dataSource.data, this.transGroup.getRawValue() as DefaultTransactionType];
+    const value = this.transGroup.getRawValue() as DefaultTransactionType;
+    this.dataSource.data = [...this.dataSource.data, value];
     this._calcTotal();
     this._resetForm();
-    this._storage.saveTransActions(this.dataSource.data);
+    await this._storage.saveTransAction(value);
   }
 
-  private _initData()
+  private async _initData()
   {
-    return forkJoin({
-      categories: this._storage.retrieveCategories(),
-      data: this._storage.retrieveTransActions()
-    })
+    this.categories =  (await this._storage.retrieveCategories()).map((c) => c.value );
+    const data = await this._storage.retrieveTransActions();
+
+    console.log(data);
+    this.dataSource = new MatTableDataSource(data);
+    this._calcTotal();
+    this._cdr.detectChanges();
   }
 
   private _calcTotal()

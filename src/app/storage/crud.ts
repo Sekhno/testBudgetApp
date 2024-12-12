@@ -1,89 +1,106 @@
 import { StorageMap } from '@ngx-pwa/local-storage';
-
-
-
 import {DefaultTransactionType} from '../models/TransactionsTypes';
-import {afterNextRender, afterRender, inject, Injectable, Injector, runInInjectionContext} from '@angular/core';
-import {first, Subject} from 'rxjs';
+import {afterRender, inject, Injectable, Injector, runInInjectionContext, signal} from '@angular/core';
+import {
+  Firestore,
+  addDoc,
+  collection,
+  getDocs,
+  query,
+  collectionData,
+  where,
+  updateDoc,
+  doc,
+  getDoc,
+  arrayUnion
+} from '@angular/fire/firestore';
+import {first, Subject, Observable, take} from 'rxjs';
+import {DocumentData} from '@angular/fire/compat/firestore';
+
+interface BudgetDocumentData {
+  id: string,
+  categories: {value: string}[],
+  transactions: DefaultTransactionType[]
+}
+
+const USER_KEY = 'userId=';
+
 
 @Injectable({providedIn: 'root'})
 export class StorageService {
-  private _storage: any;
-  constructor(private storage: StorageMap) {
-    afterRender(() => {
-      this._storage = window.localStorage;
-    })
-  }
 
-  saveTransActions(transactions: DefaultTransactionType[])
+  public availableSignal = signal(false);
+
+  private _firestore: Firestore = inject(Firestore);
+  private _userId = '';
+  private _userCollectionId = '';
+
+  constructor()
   {
-    const observer = new Subject();
+    afterRender(async () => {
+      if (!this._userId) {
+        const cookieValue = document.cookie
+          .split('; ')
+          .find((row) => row.startsWith(USER_KEY));
 
-    this._storage.setItem('[TRANSACTIONS]', JSON.stringify(transactions));
-    observer.next('[TRANSACTIONS] SAVE COMPLETED');
+        if (cookieValue) {
+          this._userId = cookieValue.replace(USER_KEY, '');
 
-    return observer.pipe(first())
-  }
+          const appRef = collection(this._firestore, 'users');
+          const arr = await getDocs(
+            query(appRef, where('id', '==', this._userId))
+          );
 
-  retrieveTransActions()
-  {
-    const observer = new Subject();
+          if (arr.size) {
+            this._userCollectionId = arr.docs[0].id;
+          }
+          else {
+            await addDoc(collection(this._firestore, 'users'), {
+              id: this._userId,
+              categories: [],
+              transactions: []
+            }  as DocumentData);
+          }
 
-    afterRender(() => {
-      const value = localStorage.getItem('[TRANSACTIONS]');
-
-      if (!value) observer.next([] as DefaultTransactionType[]);
-      else observer.next(JSON.parse(value) as DefaultTransactionType[]);
+          this.availableSignal.set(true);
+        }
+      }
     });
-
-    return observer.pipe(first())
   }
 
-  saveCategories(categories: string[])
+  async saveTransAction({name, amount, category, type, date}: DefaultTransactionType)
   {
-    const observer = new Subject();
+    const userRef = doc(this._firestore, 'users', this._userCollectionId);
 
-    this._storage.setItem('[CATEGORIES]', JSON.stringify(categories));
-    observer.next('[CATEGORIES] SAVE COMPLETED');
-
-    return observer.pipe(first())
-  }
-
-  retrieveCategories()
-  {
-    const observer = new Subject();
-    afterRender(() => {
-      const value = localStorage.getItem('[CATEGORIES]');
-      if (!value) observer.next(["Groceries", "Salary", "Entertainment"] as string[]);
-      else observer.next(JSON.parse(value) as string[]);
+    await updateDoc(userRef, {
+      transactions: arrayUnion({name, amount, category, type, date: date.getTime()})
     });
-    // return this.storage.get('[CATEGORIES]');
-    return observer.pipe(first())
+  }
+
+  async retrieveTransActions()
+  {
+    const userRef = doc(this._firestore, 'users', this._userCollectionId);
+    const snap = await getDoc(userRef);
+    const {transactions} = snap.data() as BudgetDocumentData;
+
+    return transactions;
+  }
+
+  async saveCategory(category: string)
+  {
+    const userRef = doc(this._firestore, 'users', this._userCollectionId);
+
+    await updateDoc(userRef, {
+      categories: arrayUnion({value: category})
+    });
+  }
+
+  async retrieveCategories()
+  {
+    const userRef = doc(this._firestore, 'users', this._userCollectionId);
+    const snap = await getDoc(userRef);
+    const {categories} = snap.data() as BudgetDocumentData;
+
+    return categories;
   }
 }
-
-// export function saveTransActions(transactions: DefaultTransactionType[])
-// {
-//   localStorage.setItem('[TRANSACTIONS]', JSON.stringify(transactions));
-// }
-
-// export function retrieveTransActions()
-// {
-//   const value = localStorage.getItem('[TRANSACTIONS]');
-//
-//   if (!value) return [] as DefaultTransactionType[];
-//   else return JSON.parse(value) as DefaultTransactionType[];
-// }
-
-// export function saveCategories(categories: string[])
-// {
-//   localStorage.setItem('[CATEGORIES]', JSON.stringify(categories));
-// }
-
-// export function retrieveCategories()
-// {
-//   const value = localStorage.getItem('[CATEGORIES]');
-//
-//   if (!value) return ["Groceries", "Salary", "Entertainment"] as string[];
-//   else return JSON.parse(value) as string[];
-// }
