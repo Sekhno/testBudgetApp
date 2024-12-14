@@ -43,7 +43,7 @@ export class AppComponent {
   private _storage = inject(StorageService);
 
   public categories: CategoryType[] = [];
-  public displayedColumns = ["name", "type", "category", "date", "amount",];
+  public displayedColumns = ["name", "type", "category", "date", "amount"];
   public dataSource= new MatTableDataSource([] as DefaultTransactionType[]) ;
   public transGroup = this._fb.group
   ({
