@@ -24,6 +24,7 @@ import {
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatRadioModule} from '@angular/material/radio';
 import {combineLatest, forkJoin} from 'rxjs';
+import {VerbsTesterComponent} from './components/verbs-tester/verbs-tester.component';
 
 @Component({
   selector: 'app-root',
@@ -34,7 +35,7 @@ import {combineLatest, forkJoin} from 'rxjs';
   imports: [
     RouterOutlet, DatePipe, DecimalPipe, FormsModule,
     MatInputModule, MatSelectModule, ReactiveFormsModule, MatIconModule, MatIconButton, MatButtonModule,
-    MatTableModule, MatDatepickerModule, MatExpansionModule, MatRadioModule
+    MatTableModule, MatDatepickerModule, MatExpansionModule, MatRadioModule, VerbsTesterComponent
   ]
 })
 export class AppComponent {
