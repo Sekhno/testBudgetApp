@@ -1,7 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-// import { AppComponent } from './app/app.component';
-import {VerbsTesterComponent} from './app/components/verbs-tester/verbs-tester.component';
+import { AppComponent } from './app/app.component';
 
-bootstrapApplication(VerbsTesterComponent, appConfig)
+bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));
