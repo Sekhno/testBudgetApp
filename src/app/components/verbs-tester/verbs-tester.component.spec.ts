@@ -8,14 +8,25 @@ import { MatInputModule } from '@angular/material/input';
 import { TitleCasePipe } from '@angular/common';
 import { VERBS } from './verbs.model';
 import { QUESTIONS } from './questions.model';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {AngularFirestoreModule} from '@angular/fire/compat/firestore';
+import {StorageService} from './storage/crud';
 
 describe('VerbsTesterComponent', () => {
   let component: VerbsTesterComponent;
   let fixture: ComponentFixture<VerbsTesterComponent>;
+  let mockStorageService: jasmine.SpyObj<StorageService>;
 
   beforeEach(async () => {
+    mockStorageService = jasmine.createSpyObj('StorageService', [
+      'availableSignal',
+      'saveResult',
+      'retrieveStatistics'
+    ]);
+
     await TestBed.configureTestingModule({
       imports: [
+        BrowserAnimationsModule,
         MatButtonModule,
         MatCardModule,
         MatInputModule,
@@ -23,6 +34,9 @@ describe('VerbsTesterComponent', () => {
         TitleCasePipe,
         VerbsTesterComponent
       ],
+      providers: [
+        { provide: StorageService, useValue: mockStorageService },
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(VerbsTesterComponent);

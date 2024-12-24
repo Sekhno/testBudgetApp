@@ -39,6 +39,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+nav {
+  position: fixed;
+  top: 1rem; right: 1rem;
+}
+
 section {
   margin: auto;
 }

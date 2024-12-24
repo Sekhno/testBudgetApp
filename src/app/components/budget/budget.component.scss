@@ -1,0 +1,44 @@
+main {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  //padding: 1rem;
+  box-sizing: inherit;
+  position: relative;
+}
+
+.content {
+  width: 100%; max-width: 800px;
+}
+
+form {
+  width: 100%; max-width: 400px;
+  display: flex;
+  margin: 1rem auto;
+  flex-direction: column;
+}
+
+table {
+
+  margin: 2rem auto 0 auto;
+  background-color: white;
+}
+
+.filters-content {
+  display: flex;
+  flex-wrap: wrap; /* Дозволяє перенос рядків */
+  gap: 16px; /* Відстань між елементами */
+
+  mat-form-field {
+    flex: 1 1 calc(50% - 16px); /* Ширина елемента - половина контейнера, враховуючи відступ */
+    box-sizing: border-box; /* Враховує padding та border у ширині */
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-content mat-form-field {
+    flex: 1 1 100%; /* Елементи займають 100% ширини */
+  }
+}

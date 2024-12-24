@@ -3,6 +3,9 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {StorageService} from './storage/crud';
 import {BudgetComponent} from './budget.component';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('BudgetComponent', () => {
   let fixture: ComponentFixture<BudgetComponent>;
@@ -30,7 +33,12 @@ describe('BudgetComponent', () => {
     );
 
     await TestBed.configureTestingModule({
-      imports: [BudgetComponent],
+      imports: [
+        BudgetComponent,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        BrowserAnimationsModule, // Для роботи Material компонентів
+      ],
       providers: [
         { provide: StorageService, useValue: mockStorageService },
       ]

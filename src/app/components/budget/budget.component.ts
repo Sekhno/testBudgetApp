@@ -14,8 +14,6 @@ import {VerbsTesterComponent} from '../verbs-tester/verbs-tester.component';
 import {StorageService} from './storage/crud';
 import {CategoryType, DefaultTransactionType} from './models/TransactionsTypes';
 
-console.log('Budget component')
-
 @Component({
   selector: 'app-budget',
   standalone: true,

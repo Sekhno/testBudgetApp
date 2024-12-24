@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
+import {Component, effect, inject, OnInit, signal} from '@angular/core';
 import {VerbModel, VERBS} from './verbs.model'
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -7,8 +7,25 @@ import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {MatIcon} from '@angular/material/icon';
 import {TitleCasePipe} from '@angular/common';
-import {MatSnackBar, MatSnackBarConfig, MatSnackBarModule} from '@angular/material/snack-bar';
+import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import {CdkTrapFocus} from '@angular/cdk/a11y';
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {StatisticsComponent} from './statistics/statistics.component';
+import {
+  Firestore,
+  addDoc,
+  collection,
+  getDocs,
+  query,
+  collectionData,
+  where,
+  updateDoc,
+  doc,
+  getDoc,
+  arrayUnion
+} from '@angular/fire/firestore';
+import {AngularFirestore, AngularFirestoreModule, DocumentData} from '@angular/fire/compat/firestore';
+import {StorageService} from './storage/crud';
 
 @Component({
   selector: 'app-verbs-tester',
@@ -16,12 +33,15 @@ import {CdkTrapFocus} from '@angular/cdk/a11y';
   templateUrl: './verbs-tester.component.html',
   styleUrl: './verbs-tester.component.scss',
   imports: [
-    MatButtonModule, MatCardModule, MatInputModule, MatInputModule, MatIcon, MatSnackBarModule, FormsModule,
-    TitleCasePipe, CdkTrapFocus
-  ],
+    MatButtonModule, MatCardModule, MatInputModule, MatInputModule, MatIcon, MatSnackBarModule, MatDialogModule,
+    FormsModule, TitleCasePipe, CdkTrapFocus
+  ]
 })
 export class VerbsTesterComponent implements OnInit {
   private _snackBar = inject(MatSnackBar);
+  private _dialog = inject(MatDialog);
+  // private _firestore: Firestore = inject(Firestore);
+  private _storage = inject(StorageService)
 
   public currentQuestionIndex = -1;
   public currentQuestion = '';
@@ -63,7 +83,7 @@ export class VerbsTesterComponent implements OnInit {
 
     if (curVerb === null) {
       this.completed.set(true);
-      return this._openSnackBar('The end', 'CONGRATULATIONS!');
+      return this._openSnackBar('🎉🎉🎉  The end 🎉🎉🎉', 'CONGRATULATIONS!');
     }
 
     this.currentQuestionIndex = Math.floor(Math.random() * this.QUESTIONS.length)
@@ -101,8 +121,33 @@ export class VerbsTesterComponent implements OnInit {
     this.learn();
   }
 
+  public async showStatistics()
+  {
+    const statistics = await this._storage.retrieveStatistics();
+    const dialogRef = this._dialog.open(
+      StatisticsComponent,
+      {
+        data: statistics
+      });
+  }
+
+  constructor() {
+    effect(async () => {
+      if (this.completed()) {
+        await this._storage.saveResult({
+          total: this.totalAnswers.length,
+          wrong: this.totalWrongAnswers,
+          right: this.totalRightAnswers,
+          date: new Date().getTime()
+        })
+      }
+    });
+  }
+
   ngOnInit(): void
   {
     this.learn();
+
+
   }
 }
