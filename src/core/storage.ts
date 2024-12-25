@@ -32,23 +32,17 @@ export class UserStorage {
             this._userCollectionId = arr.docs[0].id;
           }
           else {
-            await addDoc(collection(this._firestore, 'users'), new UserModel(this._userId)  as DocumentData);
+            await addDoc(collection(this._firestore, 'users'), {
+              id: this._userId,
+              categories: [],
+              transactions: [],
+              statistics: []
+            }  as DocumentData);
           }
 
           this.availableSignal.set(true);
         }
       }
     });
-  }
-}
-
-export class UserModel {
-  id: string;
-  categories: [] = [];
-  transactions: [] = [];
-  statistics: [] = [];
-
-  constructor(id: string) {
-    this.id = id
   }
 }
