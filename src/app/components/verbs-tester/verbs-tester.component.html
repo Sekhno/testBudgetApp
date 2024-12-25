@@ -26,7 +26,7 @@
       <mat-card-actions>
 
         @if (completed()) {
-          <table>
+          <table class="full">
             <tr>
               <td class="blue-color">Total answers: {{totalAnswers.length}}</td>
               <td class="purple-color">Right: {{totalRightAnswers}}</td>
@@ -44,9 +44,13 @@
           </table>
         }
         @else {
-          <pre>
-            <b class="blue-color"> Total answers: {{totalAnswers.length}}</b>, <b class="purple-color">Right: {{totalRightAnswers}}</b> , <b class="red-color">Wrong: {{totalWrongAnswers}}</b>
-          </pre>
+          <table class="full">
+            <tr>
+              <td class="blue-color">Total answers: {{totalAnswers.length}}</td>
+              <td class="purple-color">Right: {{totalRightAnswers}}</td>
+              <td class="red-color">Wrong: {{totalWrongAnswers}}</td>
+            </tr>
+          </table>
         }
       </mat-card-actions>
     </mat-card>

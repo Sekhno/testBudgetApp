@@ -74,7 +74,7 @@ export class VerbsTesterComponent implements OnInit {
 
   private _openSnackBar(message: string, action: string = '')
   {
-    this._snackBar.open(message, action,{ duration: 4000, verticalPosition: 'top' });
+    this._snackBar.open(message, action,{ duration: 4000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: 'snack-bar' });
   }
 
   public learn()
@@ -102,7 +102,7 @@ export class VerbsTesterComponent implements OnInit {
     if (!this.currentVerb) throw new Error();
 
     const rightAnswer = this.currentVerb[1][this.currentQuestionIndex];
-    const result = this.currentAnswer === rightAnswer;
+    const result = this.currentAnswer.toLowerCase() === rightAnswer;
 
     if (result) {
       this.totalRightAnswers++;
@@ -131,7 +131,8 @@ export class VerbsTesterComponent implements OnInit {
       });
   }
 
-  constructor() {
+  constructor()
+  {
     effect(async () => {
       if (this.completed()) {
         await this._storage.saveResult({
