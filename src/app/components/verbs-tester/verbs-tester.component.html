@@ -16,11 +16,9 @@
           <input matInput type="text" autofocus
                  [(ngModel)]="currentAnswer"
                  (keydown.enter)="checkAnswer()">
-          @if (currentAnswer) {
-            <button matSuffix mat-icon-button aria-label="Clear" (click)="checkAnswer()">
-              <mat-icon>check</mat-icon>
-            </button>
-          }
+          <button matSuffix mat-icon-button aria-label="Clear" [disabled]="!currentAnswer" (click)="checkAnswer()">
+            <mat-icon>check</mat-icon>
+          </button>
         </mat-form-field>
       </mat-card-content>
       <mat-card-actions>
@@ -35,7 +33,7 @@
             @for ( item of totalAnswers; track item.verb[0] ) {
               @if (!item.result) {
                 <tr>
-                  <td class="blue-color">{{ item.result }}</td>
+                  <td class="blue-color">{{ item.verb[0] }}</td>
                   <td class="purple-color">{{ item.yourAnswer }}</td>
                   <td class="red-color">{{ item.verb[1][item.question] }}</td>
                 </tr>
@@ -44,13 +42,11 @@
           </table>
         }
         @else {
-          <table class="full">
-            <tr>
-              <td class="blue-color">Total answers: {{totalAnswers.length}}</td>
-              <td class="purple-color">Right: {{totalRightAnswers}}</td>
-              <td class="red-color">Wrong: {{totalWrongAnswers}}</td>
-            </tr>
-          </table>
+          <footer>
+            <span class="blue-color"> Всього: {{totalAnswers.length}}</span>
+            <span class="purple-color">Вірно: {{totalRightAnswers}}</span>
+            <span class="red-color">Невірно: {{totalWrongAnswers}}</span>
+          </footer>
         }
       </mat-card-actions>
     </mat-card>
