@@ -1,4 +1,4 @@
-import {Component, effect, inject, OnInit, signal} from '@angular/core';
+import {afterRender, Component, effect, Inject, inject, NgZone, OnInit, PLATFORM_ID, signal} from '@angular/core';
 import {VerbModel, VERBS} from './verbs.model'
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -6,26 +6,12 @@ import {QUESTIONS} from './questions.model';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 import {MatIcon} from '@angular/material/icon';
-import {TitleCasePipe} from '@angular/common';
+import {AsyncPipe, isPlatformBrowser, TitleCasePipe} from '@angular/common';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
-import {CdkTrapFocus} from '@angular/cdk/a11y';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import {StatisticsComponent} from './statistics/statistics.component';
-import {
-  Firestore,
-  addDoc,
-  collection,
-  getDocs,
-  query,
-  collectionData,
-  where,
-  updateDoc,
-  doc,
-  getDoc,
-  arrayUnion
-} from '@angular/fire/firestore';
-import {AngularFirestore, AngularFirestoreModule, DocumentData} from '@angular/fire/compat/firestore';
 import {StorageService} from './storage/crud';
+import {interval} from 'rxjs';
 
 @Component({
   selector: 'app-verbs-tester',
@@ -34,13 +20,12 @@ import {StorageService} from './storage/crud';
   styleUrl: './verbs-tester.component.scss',
   imports: [
     MatButtonModule, MatCardModule, MatInputModule, MatInputModule, MatIcon, MatSnackBarModule, MatDialogModule,
-    FormsModule, TitleCasePipe, CdkTrapFocus
+    FormsModule, TitleCasePipe, AsyncPipe
   ]
 })
 export class VerbsTesterComponent implements OnInit {
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
-  // private _firestore: Firestore = inject(Firestore);
   private _storage = inject(StorageService)
 
   public currentQuestionIndex = -1;
@@ -50,7 +35,8 @@ export class VerbsTesterComponent implements OnInit {
   public totalAnswers: {result: boolean, verb: VerbModel, yourAnswer: string, question: number}[] = [];
   public totalRightAnswers = 0;
   public totalWrongAnswers = 0;
-  public completed = signal(false);
+  public readonly completed = signal(false);
+  // public count = signal(0);
 
   private VERBS = VERBS;
   private QUESTIONS = QUESTIONS;
@@ -131,7 +117,10 @@ export class VerbsTesterComponent implements OnInit {
       });
   }
 
-  constructor()
+  constructor(
+    // @Inject(PLATFORM_ID) private platformId: Object,
+    // private ngZone: NgZone
+  )
   {
     effect(async () => {
       if (this.completed()) {
@@ -143,12 +132,19 @@ export class VerbsTesterComponent implements OnInit {
         })
       }
     });
+
+    // this.ngZone.runOutsideAngular(() => {
+    //   interval(1000).subscribe((v) => {
+    //     this.count.set(v)
+    //   })
+    // });
+
+
+
   }
 
   ngOnInit(): void
   {
     this.learn();
-
-
   }
 }

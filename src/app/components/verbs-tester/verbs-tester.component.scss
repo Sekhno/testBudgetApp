@@ -31,9 +31,9 @@
 
   --pill-accent: var(--bright-blue);
 
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-  Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-  "Segoe UI Symbol";
+  //font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  //Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+  //"Segoe UI Symbol";
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -48,7 +48,13 @@ section {
   margin: auto;
 }
 
+footer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px;
 
+}
 
 .answer-form-field {
   width: 100%;
@@ -56,8 +62,8 @@ section {
 }
 
 .ukrainian-word {
-  font-size: 3.125rem;
-  color: var(--pill-accent) !important;
+  font: var(--mat-sys-headline-large);
+  color: var(--mat-sys-primary) !important;
   font-weight: 500;
   line-height: 100%;
   letter-spacing: -0.125rem;
@@ -68,15 +74,16 @@ section {
 }
 
 .blue-color {
-  color: var(--bright-blue)
+
+  color: var(--mat-sys-outline);
 }
 
 .purple-color {
-  color: var(--electric-violet);
+  color: var(--mat-sys-primary)
 }
 
 .red-color {
-  color: var(--hot-red);
+  color: var(--mat-sys-error);
 }
 
 .full {
