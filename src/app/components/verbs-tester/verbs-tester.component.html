@@ -22,7 +22,6 @@
         </mat-form-field>
       </mat-card-content>
       <mat-card-actions>
-
         @if (completed()) {
           <table class="full">
             <tr>
@@ -30,12 +29,20 @@
               <td class="purple-color">Right: {{totalRightAnswers}}</td>
               <td class="red-color">Wrong: {{totalWrongAnswers}}</td>
             </tr>
-            @for ( item of totalAnswers; track item.verb[0] ) {
+            @for (item of totalAnswers; track item.verb[0]) {
               @if (!item.result) {
                 <tr>
                   <td class="blue-color">{{ item.verb[0] }}</td>
                   <td class="purple-color">{{ item.yourAnswer }}</td>
-                  <td class="red-color">{{ item.verb[1][item.question] }}</td>
+                  <td class="red-color">
+                    @for (word of  item.verb[1]; track word) {
+                      <span [class.red-color]="item.question === $index">{{word}} </span>
+                      @if ($index !== item.verb[1].length-1) {
+                        <span>|</span>
+                      }
+                    }
+                    {{ item.verb[1][item.question] }}
+                  </td>
                 </tr>
               }
             }
